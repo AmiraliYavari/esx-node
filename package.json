@@ -1,0 +1,43 @@
+{
+  "name": "esx-node",
+  "version": "1.0.0",
+  "description": "Node.js library for interacting with FiveM ESX Legacy: MySQL database access (players, money, bank, jobs, inventory) and live server RCON commands.",
+  "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "files": [
+    "src",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test/rcon.test.js && node test/esxclient.test.js"
+  },
+  "keywords": [
+    "fivem",
+    "esx",
+    "esx-legacy",
+    "gta5",
+    "rcon",
+    "mysql",
+    "nodejs",
+    "gaming",
+    "roleplay"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AmiraliYavari/esx-node.git"
+  },
+  "homepage": "https://github.com/AmiraliYavari/esx-node#readme",
+  "bugs": {
+    "url": "https://github.com/AmiraliYavari/esx-node/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "mysql2": "^3.9.7"
+  }
+}
