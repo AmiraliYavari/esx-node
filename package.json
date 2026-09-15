@@ -1,5 +1,5 @@
 {
-  "name": "esx-node",
+  "name": "@amirali_yavari/esx-node",
   "version": "1.0.0",
   "description": "Node.js library for interacting with FiveM ESX Legacy: MySQL database access (players, money, bank, jobs, inventory) and live server RCON commands.",
   "main": "src/index.js",

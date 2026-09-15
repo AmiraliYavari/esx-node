@@ -12,13 +12,13 @@ It gives you two things:
 ## Install
 
 ```bash
-npm install esx-node
+npm install @amirali_yavari/esx-node
 ```
 
 ## Quick start
 
 ```js
-const { ESXClient, RCON } = require('esx-node');
+const { ESXClient, RCON } = require('@amirali_yavari/esx-node');
 
 const esx = new ESXClient({
   host: '127.0.0.1',
@@ -108,7 +108,7 @@ const esx = new ESXClient({
 Send a command to a live FiveM server (e.g. `say`, or trigger a Lua resource that does ESX-specific work via `TriggerEvent`):
 
 ```js
-const { RCON } = require('esx-node');
+const { RCON } = require('@amirali_yavari/esx-node');
 
 const rcon = new RCON({
   host: '127.0.0.1',

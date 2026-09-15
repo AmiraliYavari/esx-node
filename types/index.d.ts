@@ -1,4 +1,4 @@
-declare module 'esx-node' {
+declare module '@amirali_yavari/esx-node' {
   export interface ESXClientTableConfig {
     users?: string;
     identifier?: string;
