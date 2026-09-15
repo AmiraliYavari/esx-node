@@ -1,27 +1,21 @@
 # esx-node
 
-> GitHub: https://github.com/AmiraliYavari/esx-node
+Node.js library for interacting with **FiveM ESX Legacy** from outside the game server — perfect for Discord bots, admin dashboards, and automation scripts.
 
-کتابخانه‌ی Node.js برای کار با فریم‌ورک **FiveM ESX Legacy** از بیرون سرور FiveM — مناسب برای ساخت:
+It gives you two things:
 
-- ربات دیسکورد (چک موجودی بانک، شغل، جابجایی پول و ...)
-- پنل وب مدیریت سرور (وب‌سایت، داشبورد ادمین)
-- اسکریپت‌های اتوماسیون و گزارش‌گیری
+- **`ESXClient`** — direct access to the ESX MySQL database: read and update player money, bank, job, identity, permission group, and metadata.
+- **`RCON`** — send console commands to a live FiveM server (e.g. `say`, or trigger a Lua resource that reacts to the command).
 
-دو بخش اصلی دارد:
+> **Schema note:** the `users` table layout varies slightly between ESX Legacy versions (inventory in particular has moved to separate resources like `ox_inventory` in newer versions). Check your server's schema against the fields this library uses (`accounts`, `job`, `job_grade`, `group`, `metadata`) before using it in production. Table and column names are configurable — see below.
 
-1. **`ESXClient`** — اتصال مستقیم به دیتابیس MySQL سرور ESX برای خواندن/ویرایش اطلاعات پلیرها (پول، بانک، شغل، هویت، گروه، متادیتا).
-2. **`RCON`** — اجرای دستورات کنسول روی سرور زنده‌ی FiveM (برای مواردی که باید روی پلیر آنلاین بلافاصله اثر بگذارد، مثل `say`، اجرای export یا trigger event از طریق یک ریسورس لوآ کمکی).
-
-> ⚠️ **نکته‌ی مهم درباره‌ی اسکیما:** ساختار جدول `users` بین ورژن‌های مختلف ESX Legacy کمی فرق می‌کند (مخصوصاً inventory که در نسخه‌های جدید به ریسورس‌های جدا مثل `ox_inventory` منتقل شده است). قبل از استفاده در پروداکشن، اسکیمای دیتابیس خودتان را با فیلدهایی که این کتابخانه استفاده می‌کند (`accounts`, `job`, `job_grade`, `group`, `metadata`, ...) مقایسه کنید. نام جدول و ستون identifier هم قابل تنظیم است (به بخش پیکربندی نگاه کنید).
-
-## نصب
+## Install
 
 ```bash
 npm install esx-node
 ```
 
-## شروع سریع
+## Quick start
 
 ```js
 const { ESXClient, RCON } = require('esx-node');
@@ -29,9 +23,9 @@ const { ESXClient, RCON } = require('esx-node');
 const esx = new ESXClient({
   host: '127.0.0.1',
   user: 'root',
-  password: 'مقدار_رمز_دیتابیس',
+  password: 'your_db_password',
   database: 'esx_database',
-  port: 3306, // اختیاری، پیش‌فرض 3306
+  port: 3306, // optional, defaults to 3306
 });
 
 (async () => {
@@ -47,7 +41,7 @@ const esx = new ESXClient({
 })();
 ```
 
-## پیکربندی نام جدول/ستون (در صورت تفاوت اسکیما)
+## Custom table/column names
 
 ```js
 const esx = new ESXClient({
@@ -56,83 +50,83 @@ const esx = new ESXClient({
   password: '...',
   database: 'esx_database',
   table: {
-    users: 'users',        // نام جدول کاربران
-    identifier: 'identifier', // نام ستون شناسه یکتا
+    users: 'users',        // users table name
+    identifier: 'identifier', // unique identifier column
   },
 });
 ```
 
-## متدهای `ESXClient`
+## `ESXClient` methods
 
-### پلیرها
+### Players
 
-| متد | توضیح |
+| Method | Description |
 |---|---|
-| `playerExists(identifier)` | بررسی وجود پلیر |
-| `getPlayer(identifier)` | گرفتن رکورد کامل پلیر (accounts/metadata/inventory به‌صورت JSON پارس‌شده) |
-| `getPlayerByLicense(license)` | جستجو بر اساس license |
-| `getPlayers({ limit, offset })` | گرفتن لیست پلیرها با صفحه‌بندی |
-| `searchPlayers(query, { limit })` | جستجو بر اساس نام/نام‌خانوادگی/identifier |
-| `getPlayerIdentity(identifier)` | نام، نام‌خانوادگی، تاریخ تولد، جنسیت، قد |
+| `playerExists(identifier)` | Check if a player exists |
+| `getPlayer(identifier)` | Full player record (`accounts`/`metadata`/`inventory` parsed from JSON) |
+| `getPlayerByLicense(license)` | Look up by license |
+| `getPlayers({ limit, offset })` | Paginated player list |
+| `searchPlayers(query, { limit })` | Search by name/lastname/identifier |
+| `getPlayerIdentity(identifier)` | Firstname, lastname, date of birth, sex, height |
 
-### پول و حساب‌ها
+### Money & accounts
 
-| متد | توضیح |
+| Method | Description |
 |---|---|
-| `getAccounts(identifier)` | کل آبجکت accounts (`money`, `bank`, `black_money`, ...) |
-| `getAccountBalance(identifier, account='bank')` | موجودی یک حساب خاص |
-| `setAccountBalance(identifier, account, amount)` | ست‌کردن مستقیم موجودی |
-| `addAccountMoney(identifier, account, amount)` | افزودن پول |
-| `removeAccountMoney(identifier, account, amount)` | کسر پول (تا صفر) |
-| `getMoney/getBank/addMoney/addBank/removeMoney/removeBank` | میان‌برهای رایج برای حساب‌های `money` و `bank` |
+| `getAccounts(identifier)` | Full `accounts` object (`money`, `bank`, `black_money`, ...) |
+| `getAccountBalance(identifier, account='bank')` | Balance of a specific account |
+| `setAccountBalance(identifier, account, amount)` | Set a balance directly |
+| `addAccountMoney(identifier, account, amount)` | Add funds |
+| `removeAccountMoney(identifier, account, amount)` | Remove funds (floors at 0) |
+| `getMoney/getBank/addMoney/addBank/removeMoney/removeBank` | Shortcuts for `money` and `bank` accounts |
 
-### شغل و گروه دسترسی
+### Job & permission group
 
-| متد | توضیح |
+| Method | Description |
 |---|---|
 | `getJob(identifier)` | `{ name, grade }` |
-| `setJob(identifier, job, grade=0)` | تغییر شغل |
-| `getGroup(identifier)` | گروه دسترسی (user/admin/mod/...) |
-| `setGroup(identifier, group)` | تغییر گروه دسترسی |
+| `setJob(identifier, job, grade=0)` | Change job |
+| `getGroup(identifier)` | Permission group (user/admin/mod/...) |
+| `setGroup(identifier, group)` | Change permission group |
 
-### متادیتا / اینونتوری (بسته به اسکیمای سرور شما)
+### Metadata / inventory (depends on your schema)
 
-| متد | توضیح |
+| Method | Description |
 |---|---|
-| `getMetadata(identifier)` | خواندن ستون JSON مربوط به metadata |
-| `setMetadata(identifier, key, value)` | نوشتن یک کلید داخل metadata |
-| `getInventory(identifier)` | فقط برای اسکیمای قدیمی‌تر که inventory داخل جدول users است |
+| `getMetadata(identifier)` | Read the `metadata` JSON column |
+| `setMetadata(identifier, key, value)` | Write a single key into `metadata` |
+| `getInventory(identifier)` | Only works on older schemas that keep inventory on the `users` table |
 
-### دسترسی خام
+### Raw access
 
-| متد | توضیح |
+| Method | Description |
 |---|---|
-| `query(sql, params)` | اجرای هر کوئری دلخواه (prepared statement) |
+| `query(sql, params)` | Run any custom query (prepared statement) |
 
 ## `RCON`
 
-برای اجرای دستور روی سرور زنده‌ی FiveM (مثلاً `say`، یا trigger کردن یک ریسورس لوآ که در `server.cfg` تنظیم شده و از via `TriggerEvent` کارهای ESX را انجام می‌دهد):
+Send a command to a live FiveM server (e.g. `say`, or trigger a Lua resource that does ESX-specific work via `TriggerEvent`):
 
 ```js
 const { RCON } = require('esx-node');
 
 const rcon = new RCON({
   host: '127.0.0.1',
-  port: 30120,          // پورت سرور FiveM
-  password: 'rcon_password_شما', // همان مقدار rcon_password در server.cfg
-  timeout: 4000,         // اختیاری، میلی‌ثانیه
+  port: 30120,           // FiveM server port
+  password: 'your_rcon_password', // must match rcon_password in server.cfg
+  timeout: 4000,          // optional, ms
 });
 
-const response = await rcon.send('say "سلام از Node.js"');
+const response = await rcon.send('say "Hello from Node.js"');
 console.log(response);
 ```
 
-> برای اینکه RCON کار کند باید در `server.cfg` سرور مقدار `rcon_password "..."` تنظیم شده و پورت مربوطه در فایروال باز باشد.
+> For RCON to work, `rcon_password "..."` must be set in your `server.cfg` and the port must be reachable through your firewall.
 
-## چرا این کتابخانه به دیتابیس مستقیم وصل می‌شود؟
+## Why does this connect directly to the database?
 
-FiveM هیچ API بیرونی رسمی برای خواندن/نوشتن دیتای ESX ندارد؛ تنها راه‌های ارتباط از بیرون سرور، دیتابیس MySQL مشترک (برای دیتای persistent) و RCON (برای اثرگذاری آنی روی سرور در حال اجرا) هستند. این کتابخانه دقیقاً همین دو راه را در قالب یک API تمیز و async/await در اختیار شما می‌گذارد.
+FiveM has no official external API for reading/writing ESX data. The only ways to talk to it from outside the server are the shared MySQL database (for persistent data) and RCON (for affecting a running server immediately). This library wraps both in a clean, `async/await` API.
 
-## لایسنس
+## License
 
-MIT
+Apache License 2.0
